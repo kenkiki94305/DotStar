@@ -62,4 +62,5 @@ class DotStar{
   int led_n;
   char* buffer;
   size_t buffer_len;
+  Module module;
 };

@@ -1,5 +1,4 @@
 #include <dotstar.h>
-#include <bcm2835.h>
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
@@ -11,21 +10,17 @@ DotStar::DotStar(int num_led){
   led_n = num_led;
   buffer_len = sizeof(int)*(led_n+2);
   buffer = new char[buffer_len];
-  if(!bcm2835_init()){
-    cout<<"bcm2835 init failed Are you running as root?"<<endl;
-  }
-  if(!bcm2835_spi_begin()){
-    cout<<"Failed to start SPI. Are you running as root?"<<endl;
-  }
-  bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
-  bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_8);
-  bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-  bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+  
+  if(mode == Module::SPI_MODE)
+    module = new SPIModule();
+
+  else if(mode == Module::GPIO_MODE)
+    module = new GPIOModule();
+
 }
+
 DotStar::~DotStar(){
-  bcm2835_spi_end();
-  bcm2835_close();
+  delete module;
 }
 void DotStar::set(vector<vector<double> > &data){
   int buffer_count = 0;
@@ -35,7 +30,8 @@ void DotStar::set(vector<vector<double> > &data){
 				data[i][0],data[i][1],data[i][2]);
   }
   buffer_count += _addFooter(&buffer[buffer_count]);
-  bcm2835_spi_writenb(buffer,buffer_len);
+
+  module->write(buffer,buffer_len);
 }
 size_t DotStar::_addHeader(char* buff){
   char data = _DecToBinary(0);
