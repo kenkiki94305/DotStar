@@ -2,7 +2,8 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
-
+#include <modules.h>
+#include <bcm2835.h>
 bool DotStar::init(){
 }
   
@@ -11,11 +12,11 @@ DotStar::DotStar(int num_led){
   buffer_len = sizeof(int)*(led_n+2);
   buffer = new char[buffer_len];
   
-  if(mode == Module::SPI_MODE)
-    module = new SPIModule();
+  //  if(mode == Module::SPI_MODE)
+  //      module = new SPIModule();
 
-  else if(mode == Module::GPIO_MODE)
-    module = new GPIOModule();
+    //  else if(mode == Module::GPIO_MODE)
+  module = new GPIOModule(RPI_V2_GPIO_P1_18,RPI_V2_GPIO_P1_16);
 
 }
 
@@ -75,20 +76,23 @@ double get_dtime(){
   return ((double)(tv.tv_sec) + (double)(tv.tv_usec) * 0.001 * 0.001);
 }
 int main(){
-  DotStar dotstar(144);
-  vector<vector<double> > data(144);
-  for(int i = 0; i < data.size(); i++){
-      data[i].push_back(0.1);
-      data[i].push_back(0.1);
-      data[i].push_back(0);
-  }
+  DotStar dotstar(145);
+  vector<vector<double> > data(145);
+  vector<double> pixel(3);
+  for(int i = 0; i < 3; i++)
+    pixel[i] = 0;
+  for(int i = 0; i < data.size(); i++)
+    data[i] = pixel;
+
   double last_time = get_dtime();
   double step = 1;
   while(true){
     //     if(last_time + step > get_dtime()){
-      last_time = get_dtime();
-      dotstar.set(data);
-      //    }
+    //    last_time = get_dtime();
+    data[143][0] = 1;
+    data[143][1] = 0;
+    data[143][2] = 0;
+    dotstar.set(data);
   }
   return 0;
 }

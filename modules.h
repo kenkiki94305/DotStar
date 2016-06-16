@@ -1,3 +1,5 @@
+#ifndef DOTSTAR_MODULES_H
+#define DOTSTAR_MODULES_H
 #include <stdio.h>
 
 class Module{
@@ -13,13 +15,17 @@ class Module{
   int _mode;
 };
 class SPIModule: public Module{
+ public:
   SPIModule();
   ~SPIModule();
   virtual void write(char* buff, size_t len);
 };
 class GPIOModule: public Module{
-  GPIOModule(int output_pin);
+ public:
+  GPIOModule(int clk_pin, int out_pin);
   ~GPIOModule();
   virtual void write(char* buff,size_t len);
-  int _output_pin;
+  int _out_pin;
+  int _clk_pin;
 };
+#endif //DOTSTAR_MODULES_H

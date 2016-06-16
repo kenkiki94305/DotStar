@@ -1,4 +1,6 @@
-
+#ifndef DOTSTAR_MAIN_H
+#define DOTSTAR_MAIN_H
+#include <modules.h>
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -10,7 +12,7 @@ class DotStar{
    * constuctor
    * @param (num_led) Number of LEDs in the strip
    */
-  DotStar(int num_led);
+ DotStar(int num_led);
 
     /**
    * @fn
@@ -62,5 +64,6 @@ class DotStar{
   int led_n;
   char* buffer;
   size_t buffer_len;
-  Module module;
+  Module* module;
 };
+#endif //DOTSTAR_MAIN_H
