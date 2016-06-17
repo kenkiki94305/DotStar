@@ -18,9 +18,9 @@ SPIModule::SPIModule():Module(Module::SPI_MODE){
   }
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_8);
-  bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-  bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, HIGH);
+  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16);
+  bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
+  //  bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
 }
 
 SPIModule::~SPIModule(){
@@ -28,10 +28,7 @@ SPIModule::~SPIModule(){
 }
 
 void SPIModule::write(char* buff, size_t len){
-  //  bcm2835_spi_writenb(buff,len);
-  for(int i = 0; i < len; i++){
-    bcm2835_spi_transfer(buff[i]);
-  }
+  bcm2835_spi_writenb(buff,len);
 }
 
 GPIOModule::GPIOModule(int clk_pin, int out_pin):Module(Module::GPIO_MODE){
