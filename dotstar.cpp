@@ -1,23 +1,19 @@
 #include <dotstar.h>
 #include <string.h>
 #include <math.h>
-#include <sys/time.h>
 #include <modules.h>
 #include <bcm2835.h>
-#include <sys/mman.h>
-bool DotStar::init(){
-}
-  
-DotStar::DotStar(int num_led){
+
+DotStar::DotStar(int num_led,int mode){
   led_n = num_led;
   buffer_len = sizeof(int)*(led_n+2);
   buffer = new char[buffer_len];
   
-  //  if(mode == Module::SPI_MODE)
-     module = new SPIModule();
+  if(mode == Module::SPI_MODE)
+    module = new SPIModule();
 
-    //  else if(mode == Module::GPIO_MODE)
-     //  module = new GPIOModule(RPI_V2_GPIO_P1_18,RPI_V2_GPIO_P1_16);
+  else if(mode == Module::GPIO_MODE)
+    module = new GPIOModule(11,10);
 
 }
 
@@ -70,47 +66,4 @@ char DotStar::_DecToBinary(int val){
     i++;
   }
   return bin;
-}
-double get_dtime(){
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return ((double)(tv.tv_sec) + (double)(tv.tv_usec) * 0.001 * 0.001);
-}
-int main(){
-
-  DotStar dotstar(144);
-  vector<vector<double> > data(144);
-  vector<double> pixel(3);
-  for(int i = 0; i < 3; i++)
-    pixel[i] = 0;
-  for(int i = 0; i < data.size(); i++)
-    data[i] = pixel;
-
-  double last_time = get_dtime();
-  double step = 1;
-  data[143][0] = 1;
-  data[143][1] = 0;
-  data[143][2] = 0;
-  int loop_times = 10000;
-
-  int buffer_count = 0;
-  char *buffer;
-  buffer = new char[144];
-  buffer_count += dotstar._addHeader(&buffer[buffer_count]);
-  for(int i = 0; i < data.size(); i++){
-    buffer_count += dotstar._addLEDData(&buffer[buffer_count],
-				data[i][0],data[i][1],data[i][2]);
-  }
-  buffer_count += dotstar._addFooter(&buffer[buffer_count]);
-  double start_time = get_dtime();  
-  for(int i = 0; i < loop_times; i++){
-    dotstar.module->write(buffer,buffer_count);
-    //     if(last_time + step > get_dtime()){
-    //    last_time = get_dtime();
-    //    dotstar.set(data);
-  }
-  double duration = get_dtime() - start_time;
-  cout << "time to send " << duration/loop_times*1000 << " ms"<<endl;
-
-  return 0;
 }

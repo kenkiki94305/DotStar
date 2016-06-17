@@ -12,18 +12,13 @@ class DotStar{
    * constuctor
    * @param (num_led) Number of LEDs in the strip
    */
- DotStar(int num_led);
+  DotStar(int num_led,int mode);
 
     /**
    * @fn
    * destructor
    */
   ~DotStar();
-  /**
-   * @fn
-   * Init SPI module
-   */
-  bool init();
   /**
    * @fn
    * Add LED data to the buffer

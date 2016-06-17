@@ -32,30 +32,68 @@ void SPIModule::write(char* buff, size_t len){
 }
 
 GPIOModule::GPIOModule(int clk_pin, int out_pin):Module(Module::GPIO_MODE){
-  if(!bcm2835_init()){
-    std::cout<<"bcm2835 init failed Are you running as root?"<<std::endl;
-  }
   _out_pin = out_pin;
   _clk_pin = clk_pin;
-  bcm2835_gpio_fsel(_out_pin, BCM2835_GPIO_FSEL_OUTP);
-  bcm2835_gpio_fsel(_clk_pin, BCM2835_GPIO_FSEL_OUTP);
+  setup_io();
+  INP_GPIO(_out_pin);
+  OUT_GPIO(_out_pin);
+  INP_GPIO(_clk_pin);
+  OUT_GPIO(_clk_pin);
 }
 
 GPIOModule::~GPIOModule(){
-  bcm2835_gpio_write(_clk_pin,LOW);
-  bcm2835_gpio_write(_out_pin,LOW);  
+
 }
 
 void GPIOModule::write(char* buff, size_t len){
   for(int i = 0; i < len; i++){
     for(int j = 0; j< 8; j++){
-      bcm2835_gpio_write(_clk_pin,LOW);
-      bcm2835_gpio_write(_out_pin,(buff[i] >> j) & 0x01);
-      //      bcm2835_delayMicroseconds(1);
-      bcm2835_gpio_write(_clk_pin,HIGH);
-      //      bcm2835_delayMicroseconds(1);    
+      volatile uint8_t high = 50;
+      volatile uint8_t low = 60;
+      
+      GPIO_CLR = 1 << _clk_pin;
+
+      if((buff[i]>>j)&0x01)
+	GPIO_SET = 1 << _out_pin;
+      else
+	GPIO_CLR = 1 << _out_pin;
+
+
+      while(low--);
+      GPIO_SET = 1 << _clk_pin;
+     while(high--);
     }
   }
 }
+void GPIOModule::setup_io(){
+  /* open /dev/mem */
+  if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) {
+    printf("can't open /dev/mem \n");
+    exit(-1);
+  }
 
+  /* mmap GPIO */
+  gpio_map = mmap(
+		  NULL,             //Any adddress in our space will do
+		  BLOCK_SIZE,       //Map length
+		  PROT_READ|PROT_WRITE,// Enable reading & writting to mapped memory
+		  MAP_SHARED,       //Shared with other processes
+		  mem_fd,           //File to map
+		  GPIO_BASE         //Offset to GPIO peripheral
+		  );
+
+  close(mem_fd); //No need to keep mem_fd open after mmap
+
+  if (gpio_map == MAP_FAILED) {
+    printf("mmap error %d\n", (int)gpio_map);//errno also set!
+    exit(-1);
+  }
+
+  // Always use volatile pointer!
+  gpio = (volatile unsigned *)gpio_map;
+
+   
+
+
+}
 
