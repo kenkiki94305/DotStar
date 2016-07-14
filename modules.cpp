@@ -4,9 +4,9 @@
 
 Module::Module(int mode){
   _mode = mode;
-  if(!bcm2835_init()){
-    std::cout<<"bcm2835 init failed Are you running as root?"<<std::endl;
-  }
+  //  if(!bcm2835_init()){
+  //    std::cout<<"bcm2835 init failed Are you running as root?"<<std::endl;
+  //  }
 }
 
 Module::~Module(){
@@ -46,24 +46,30 @@ GPIOModule::~GPIOModule(){
 }
 
 void GPIOModule::write(char* buff, size_t len){
+  volatile uint8_t high;
+  volatile uint8_t low;
+  
   for(int i = 0; i < len; i++){
     for(int j = 0; j< 8; j++){
-      volatile uint8_t high = 50;
-      volatile uint8_t low = 60;
-      
-      GPIO_CLR = 1 << _clk_pin;
+      //      high = 50;
+      //      low = 60;
+      high = 200;
+      low =200;
 
+      GPIO_CLR = 1 << _clk_pin;
       if((buff[i]>>j)&0x01)
 	GPIO_SET = 1 << _out_pin;
       else
 	GPIO_CLR = 1 << _out_pin;
 
+      
 
       while(low--);
       GPIO_SET = 1 << _clk_pin;
-     while(high--);
+                  while(high--);
     }
   }
+
 }
 void GPIOModule::setup_io(){
   /* open /dev/mem */

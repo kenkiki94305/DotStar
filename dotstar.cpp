@@ -2,7 +2,6 @@
 #include <string.h>
 #include <math.h>
 #include <modules.h>
-#include <bcm2835.h>
 
 DotStar::DotStar(int num_led,int mode){
   led_n = num_led;
@@ -13,7 +12,7 @@ DotStar::DotStar(int num_led,int mode){
     module = new SPIModule();
 
   else if(mode == Module::GPIO_MODE)
-    module = new GPIOModule(11,10);
+    module = new GPIOModule(21,20);
 
 }
 
@@ -25,7 +24,7 @@ void DotStar::set(vector<vector<double> > &data){
   buffer_count += _addHeader(&buffer[buffer_count]);
   for(int i = 0; i < data.size(); i++){
     buffer_count += _addLEDData(&buffer[buffer_count],
-				data[i][0],data[i][1],data[i][2]);
+				data[i][0],data[i][1],data[i][2],0.1);
   }
   buffer_count += _addFooter(&buffer[buffer_count]);
 
@@ -33,10 +32,10 @@ void DotStar::set(vector<vector<double> > &data){
 }
 size_t DotStar::_addHeader(char* buff){
   char data = _DecToBinary(0);
-  for(size_t i = 0; i < sizeof(int); i++)
+  for(size_t i = 0; i < 4; i++)
     memcpy(buff+i,&data,1);
   
-  return sizeof(int);
+  return 4;
 }
 size_t DotStar::_addLEDData(char* buff, double r, double g, double b, double global){
   int global_strength = floor(global*31);
@@ -49,11 +48,12 @@ size_t DotStar::_addLEDData(char* buff, double r, double g, double b, double glo
   return sizeof(int);  
 }
 size_t DotStar::_addFooter(char* buff){
-  char data = _DecToBinary(255);
-  for(size_t i = 0; i < sizeof(int); i++)
+  char data = _DecToBinary(0);
+  int footer_bytes = led_n/8;
+  for(size_t i = 0; i < footer_bytes; i++)
     memcpy(buff,&data,1);
   
-  return sizeof(int);
+  return footer_bytes;
 }
 char DotStar::_DecToBinary(int val){
   char bin = 0x00;
